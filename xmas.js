@@ -1,11 +1,18 @@
-var request = require("request");
+const request = require("request");
+const dgram = require('dgram');
+const Color = require('color');
 
 var IP = "192.168.0.62"; // ADD YOUR OWN LAMP IP HERE
 var CHALLENGE = {'challenge':'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\a'}; // This challenge will do all the time. 
 var XAUTHTOKEN = "";
+var UDP_PORT_RT=7777;
+var RT_BUFFER = Buffer.alloc(1+9+175*3,0);
+var UDP_RT_HEADER = 0x02;
+UDP_RT_HEADER[0] = UDP_RT_HEADER;
 var PRODUCT_NAME="Twinkly";
 var OFF = {"mode":"off"};
 var ON = {"mode": "movie","code": 1000};
+var RT = {"mode":"rt"};
 var LAMP_STATUS = {
     UNREACHABLE: 0,
     DETECTED :1,
@@ -172,6 +179,40 @@ var connect = function(callback){
 }
 
 
+var paint_single_color = function(color_value)
+{
+    var udp_token = Buffer.from(XAUTHTOKEN,"base64");
+    udp_token.copy(RT_BUFFER,1,0,udp_token.length);
+
+    var color_buffer=Buffer.alloc(3);
+    color_buffer[0] = color_value.red();
+    color_buffer[1] = color_value.green();
+    color_buffer[2] = color_value.blue();
+    RT_BUFFER.fill(color_buffer,10,RT_BUFFER.length);
+  
+    var client = dgram.createSocket('udp4');
+    client.send(RT_BUFFER, UDP_PORT_RT, IP, (err) => {
+        client.close();
+    });
+      
+}
+
+
+var xmas_paint = function(color_value)
+{
+    connect(function(status) {
+        if(status == LAMP_STATUS.AUTHENTICATE_OK)
+        {
+            action(RT, function(status){
+                if(status == LAMP_STATUS.ACTION_SUCCESS)
+                {
+                   paint_single_color(color_value);
+                }
+            })
+        }
+       })
+}
+
 var xmas = function(mode)
 {
     connect(function(status) {
@@ -188,7 +229,15 @@ var xmas = function(mode)
 }
 
 //TURN THE LAMPS ON
-xmas(ON);
-// xmas(OFF) to turn the lamps OFF...
+//xmas(ON); 
+
+//TURN THE LAMPS OFF
+//xmas(OFF);
+
+//TURN ON AND PAINT A COLOR (The LEDs will automatically revert to their normal ON mode (movie) after a few seconds)
+xmas_paint(Color("red"));
+//TURN ON AND PAINT ANY RGB COLOR
+//xmas_paint(Color.rgb(118,36,242));
+
 
 
