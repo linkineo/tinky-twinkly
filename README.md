@@ -1,5 +1,5 @@
 # Tinky-twinkly
-This is an unofficial node.js sample code showing how to turn the twikly smart xmas lights ON/OFF.
+This is an unofficial node.js sample code showing how to turn the twikly smart xmas lights ON/OFF and perform some basic light painting.
 This software is not endorsed in any way by the Twinkly team and is to be used at your own risk.
 
 ### How to execute
